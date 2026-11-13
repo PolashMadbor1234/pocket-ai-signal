@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07111f"><title>POLASH PRO — OTC Signal Desk</title>
+<style>
+:root{color-scheme:dark;--bg:#07111f;--line:#22364d;--muted:#9aadc2;--white:#eef6ff;--green:#20d69a;--red:#ff637b;--blue:#66aaff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#142b42 0,#07111f 45%);font:15px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--white)}
+.wrap{max-width:980px;margin:auto;padding:20px 14px 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.brand{font-weight:900;letter-spacing:2px;font-size:22px}.brand span{color:var(--green)}.pill{border:1px solid #236b5b;color:#70edc4;background:#0b302b;padding:7px 11px;border-radius:30px;font-size:12px;font-weight:700}
+.hero{padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(130deg,#132b40,#101b2c);margin-bottom:14px}.eyebrow{color:var(--green);font-size:11px;letter-spacing:2px;font-weight:800}.hero h1{font-size:clamp(25px,6vw,40px);margin:7px 0}.sub{color:var(--muted);line-height:1.55;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{background:#0e1b2b;border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}.wide{grid-column:1/-1}.label{font-size:12px;color:var(--muted);margin-bottom:8px}.value{font-size:23px;font-weight:800}.small{font-size:12px;color:var(--muted);line-height:1.5}.signal{font-size:30px;font-weight:900;letter-spacing:1px}.wait{color:#ffd27a}.call{color:var(--green)}.put{color:var(--red)}
+textarea,button{font:inherit}textarea{width:100%;min-height:112px;resize:vertical;padding:12px;border-radius:10px;border:1px solid #2a4059;background:#091524;color:var(--white);outline:none}button{border:0;border-radius:11px;padding:13px 16px;background:var(--green);color:#052018;font-weight:900;width:100%;cursor:pointer;margin-top:10px}.secondary{background:#20354b;color:#eaf4ff}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#091524;border:1px solid #1d3147;border-radius:10px;padding:10px}.metric b{display:block;font-size:18px;margin-top:4px}.bar{height:7px;background:#23364b;border-radius:10px;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;background:var(--blue);width:0}
+.notice{padding:12px;border-radius:12px;background:#302719;border:1px solid #69502a;color:#ffe0a3;font-size:12px;line-height:1.5;margin-top:12px}.foot{text-align:center;color:#72869c;font-size:11px;margin-top:20px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.wide{grid-column:span 2}.full{grid-column:1/-1}}
+</style></head><body><main class="wrap">
+<header class="top"><div class="brand">POLASH <span>PRO</span></div><div class="pill">● OTC ONLY</div></header>
+<section class="hero"><div class="eyebrow">AI-ASSISTED MARKET ANALYSIS</div><h1>OTC SIGNAL DESK</h1><p class="sub">MACD · RSI · Bollinger Bands · Historical signal scoring<br>Designed for mobile. No automatic trading.</p></section>
+<section class="grid">
+<div class="card"><div class="label">SIGNAL STATUS</div><div id="signal" class="signal wait">WAIT</div><div id="reason" class="small">Upload candle data to begin analysis.</div></div>
+<div class="card"><div class="label">MARKET</div><div class="value">Pocket Option OTC</div><div class="small">OTC analysis only</div></div>
+<div class="card"><div class="label">MACD</div><div id="macd" class="value">—</div><div id="macdHint" class="small">Waiting for data</div></div>
+<div class="card"><div class="label">RSI (14)</div><div id="rsi" class="value">—</div><div id="rsiHint" class="small">Waiting for data</div></div>
+<div class="card"><div class="label">BOLLINGER BANDS</div><div id="bb" class="value">—</div><div id="bbHint" class="small">Waiting for data</div></div>
+<div class="card"><div class="label">SIGNAL SCORE</div><div id="score" class="value">—</div><div class="bar"><i id="scoreBar"></i></div><div class="small">Rule-based score, not a trained AI prediction</div></div>
+<div class="card wide"><div class="label">ANALYSIS SETTINGS</div><div class="metrics"><div class="metric"><span class="small">RSI period</span><b>14</b></div><div class="metric"><span class="small">MACD</span><b>12 / 26 / 9</b></div><div class="metric"><span class="small">BB period</span><b>20 / 2σ</b></div></div></div>
+<div class="card wide"><div class="label">CANDLE DATA (CSV)</div><p class="small">Paste candle rows in this order: open,high,low,close — one candle per line. At least 35 candles required. Use verified OTC data only.</p><textarea id="csv" placeholder="1.0820,1.0830,1.0810,1.0825&#10;1.0825,1.0840,1.0820,1.0835"></textarea><button id="analyse">ANALYSE OTC DATA</button><button class="secondary" id="clear">CLEAR DATA</button></div>
+<div class="card full"><div class="label">HOW TO READ</div><p class="small">CALL/PUT appears only when indicator conditions agree. Conflicting or insufficient data returns WAIT. This page does not connect to Pocket Option, does not fetch live OTC prices, and does not place trades.</p></div>
+</section>
+<div class="notice">Risk notice: OTC prices and short-expiry outcomes can be highly unpredictable. This tool is an educational indicator calculator, not financial advice or a guarantee of accuracy. Test with demo data first.</div>
+<div class="foot">POLASH PRO · OTC ONLY · Mobile web dashboard</div></main>
+<script>
+const $=id=>document.getElementById(id);
+function ema(a,p){let k=2/(p+1),out=[],v=a[0];for(let i=0;i<a.length;i++){v=i===0?a[i]:a[i]*k+v*(1-k);out.push(v)}return out}
+function rsi(a,p=14){let gains=0,losses=0;for(let i=a.length-p;i<a.length;i++){let d=a[i]-a[i-1];if(d>0)gains+=d;else losses-=d}if(losses===0)return 100;return 100-100/(1+gains/losses)}
+function analyse(){try{
+const rows=$('csv').value.trim().split(/\n+/).map(x=>x.trim().split(/[,;\s]+/).map(Number));
+if(rows.length<35||rows.some(r=>r.length<4||r.slice(0,4).some(n=>!Number.isFinite(n))))throw Error('কমপক্ষে ৩৫টি সঠিক OHLC candle row দিন।');
+const closes=rows.map(r=>r[3]),last=closes.at(-1),fast=ema(closes,12),slow=ema(closes,26),line=fast.map((v,i)=>v-slow[i]),sig=ema(line,9),hist=line.at(-1)-sig.at(-1),rv=rsi(closes);
+const tail=closes.slice(-20),mean=tail.reduce((a,b)=>a+b,0)/20,sd=Math.sqrt(tail.reduce((s,v)=>s+(v-mean)**2,0)/20),upper=mean+2*sd,lower=mean-2*sd;
+let m=hist>0?1:hist<0?-1:0,rr=rv<35?1:rv>65?-1:0,bb=last<lower?1:last>upper?-1:0;
+let up=[m,rr,bb].filter(v=>v===1).length,down=[m,rr,bb].filter(v=>v===-1).length;
+let side='WAIT',why='Indicators are mixed. Wait for clearer confirmation.',score=Math.round(Math.max(up,down)/3*100);
+if(up>=2&&up>down){side='CALL';why='Bullish confirmation from at least two indicators.'}
+if(down>=2&&down>up){side='PUT';why='Bearish confirmation from at least two indicators.'}
+$('signal').textContent=side;$('signal').className='signal '+(side==='CALL'?'call':side==='PUT'?'put':'wait');$('reason').textContent=why;
+$('macd').textContent=hist.toFixed(6);$('macdHint').textContent=hist>0?'Positive momentum':hist<0?'Negative momentum':'Neutral';
+$('rsi').textContent=rv.toFixed(1);$('rsiHint').textContent=rv<35?'Oversold zone':rv>65?'Overbought zone':'Neutral zone';
+$('bb').textContent=last>upper?'Above upper':last<lower?'Below lower':'Inside bands';$('bbHint').textContent='Lower '+lower.toFixed(5)+' · Upper '+upper.toFixed(5);
+$('score').textContent=score+' / 100';$('scoreBar').style.width=score+'%';
+}catch(e){$('signal').textContent='WAIT';$('signal').className='signal wait';$('reason').textContent=e.message;}}
+$('analyse').addEventListener('click',analyse);$('clear').addEventListener('click',()=>{$('csv').value='';['macd','rsi','bb','score'].forEach(id=>$(id).textContent='—');$('signal').textContent='WAIT';$('reason').textContent='Upload candle data to begin analysis.';$('scoreBar').style.width='0%';});
+</script></body></html>
